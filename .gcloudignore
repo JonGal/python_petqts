@@ -16,8 +16,5 @@
 
 README.md
 create.sh
-requirements-dev.txt
-requirements-test.txt
-requirements.txt
 
 node_modules

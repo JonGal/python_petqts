@@ -174,7 +174,7 @@ def UpdatePicts(all_thumbs, current_bucket):
         for obj in all_thumbs:
             fullname = obj.name
             imgname = fullname.replace('thumb-','')
-            outStr = "<div class='card'> <a href='"+imgname+"'><img src='http://www.petqts.com/"+fullname+"'  style='height: 280px; width: 100%; display: block;' > </a> </div>\n"
+            outStr = "<div class='card'> <div class='card-body'> <a href='"+imgname+"'><img src='http://www.petqts.com/"+fullname+"'  style='height: 100%; width: 100%; display: block;' > </a> </div> </div> \n"
             print(f"{outStr}")
             fp.write(outStr)
     else:
