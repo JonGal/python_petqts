@@ -50,14 +50,19 @@ def blur_offensive_images(data, context):
         print(f'The image {file_name} is an html file.')
         return
 
-
     print(f'Analyzing {file_name}. Base Name: {file_base_name}')
 
     result = vision_client.safe_search_detection(blob_source)
     detected = result.safe_search_annotation
 
+    # Names of likelihood from google.cloud.vision.enums
+    likelihood_name = ('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE', 'LIKELY', 'VERY_LIKELY')
+
+    nsfw_annotations = (likelihood_name[detected.adult], likelihood_name[detected.violence])
+
     # Process image
-    if detected.adult == 5 or detected.violence == 5:
+    # blur image if it is "LIKELY" or "VERY_LIKELY" to contain adult or violent content
+    if any(x == 'LIKELY' or x == 'VERY_LIKELY' for x in nsfw_annotations):
         print(f'The image {file_name} was detected as inappropriate.')
         __blur_image(blob)
         file_base_name = "blurred-"+file_base_name
@@ -68,9 +73,7 @@ def blur_offensive_images(data, context):
     images_blob = storage_client.bucket(bucket_name).get_blob("images/"+file_base_name)
     GenThumbs(images_blob)
     all_thumbs = list(storage_client.bucket(bucket_name).list_blobs(prefix="images/thumb-"))
-    UpdatePicts(all_thumbs,storage_client.get_bucket(bucket_name) )
-
-    
+    UpdatePicts(all_thumbs,storage_client.get_bucket(bucket_name) )   
 # [END functions_imagemagick_analyze]
 
 
@@ -81,11 +84,11 @@ def __blur_image(current_blob):
     bucket_name = current_blob.bucket
     head_tail = os.path.split(file_name)
     file_base_name = "blurred-" + os.path.basename(head_tail[1])
-#    # print head and tail 
-#    # of the specified path 
-    print(f"Head {head_tail[0]}") 
-    print(f"Tail {head_tail[1]}") 
-#
+#    # print head and tail
+#    # of the specified path
+    print(f"Head {head_tail[0]}")
+    print(f"Tail {head_tail[1]}")
+
     _, temp_local_filename = tempfile.mkstemp()
 
     # Download file from bucket.
@@ -158,7 +161,6 @@ def GenThumbs(current_blob):
 # [END functions_GenThumbs]
 
 
-
 # [START functions_UpdatePicts]
 def UpdatePicts(all_thumbs, current_bucket):
     pictsFile = "picts.html"
@@ -174,7 +176,7 @@ def UpdatePicts(all_thumbs, current_bucket):
         for obj in all_thumbs:
             fullname = obj.name
             imgname = fullname.replace('thumb-','')
-            outStr = "<div class='card'> <div class='card-body'> <a href='"+imgname+"'><img src='http://www.petqts.com/"+fullname+"'  style='height: 100%; width: 100%; display: block;' > </a> </div> </div> \n"
+            outStr = "<div class='card'> <div class='card-body'> <a href='" + imgname + "'><img src='http://" + current_bucket.name + "/" + fullname + "'  style='height: 100%; width: 100%; display: block;' > </a> </div> </div> \n"
             print(f"{outStr}")
             fp.write(outStr)
     else:
@@ -182,8 +184,6 @@ def UpdatePicts(all_thumbs, current_bucket):
 
     fp.write("</template>\n")
     fp.close()
-            
     new_blob = current_bucket.blob(pictsFile)
     new_blob.upload_from_filename(tmpFile)
 # [END functions_UpdatePicts]
-
