@@ -72,8 +72,11 @@ def blur_offensive_images(data, context):
 
     images_blob = storage_client.bucket(bucket_name).get_blob("images/"+file_base_name)
     GenThumbs(images_blob)
+
+    # Do this because list_blobs from bucket blob is deprecated
     all_thumbs = list(storage_client.bucket(bucket_name).list_blobs(prefix="images/thumb-"))
     UpdatePicts(all_thumbs,storage_client.get_bucket(bucket_name) )   
+
 # [END functions_imagemagick_analyze]
 
 
@@ -84,10 +87,6 @@ def __blur_image(current_blob):
     bucket_name = current_blob.bucket
     head_tail = os.path.split(file_name)
     file_base_name = "blurred-" + os.path.basename(head_tail[1])
-#    # print head and tail
-#    # of the specified path
-    print(f"Head {head_tail[0]}")
-    print(f"Tail {head_tail[1]}")
 
     _, temp_local_filename = tempfile.mkstemp()
 
@@ -103,12 +102,7 @@ def __blur_image(current_blob):
 
     print(f'Image {file_name} was blurred.')
 
-    # Upload result to a second bucket, to avoid re-triggering the function.
-    # You could instead re-upload it to the same bucket + tell your function
-    # to ignore files marked as blurred (e.g. those with a "blurred" prefix)
-    #blur_bucket_name = os.getenv('BLURRED_BUCKET_NAME')
-    #blur_bucket = storage_client.bucket(blur_bucket_name)
-
+    # Upload to images bucket to be picked up for thumbs processing
     new_blob_name = "images/"+file_base_name
     new_blob = current_blob.bucket.blob(new_blob_name)
     new_blob.upload_from_filename(temp_local_filename)
@@ -125,11 +119,7 @@ def GenThumbs(current_blob):
     bucket_name = current_blob.bucket
     head_tail = os.path.split(file_name)
     file_base_name = "thumb-" + os.path.basename(head_tail[1])
-#    # print head and tail 
-#    # of the specified path 
-    print(f"Head {head_tail[0]}") 
-    print(f"Tail {head_tail[1]}") 
-#
+
     _, temp_local_filename = tempfile.mkstemp()
 
     # Download file from bucket.
@@ -144,16 +134,10 @@ def GenThumbs(current_blob):
 
     print(f'Image {file_name} was resized.')
 
-    # Upload result to a second bucket, to avoid re-triggering the function.
-    # You could instead re-upload it to the same bucket + tell your function
-    # to ignore files marked as blurred (e.g. those with a "blurred" prefix)
-    #blur_bucket_name = os.getenv('BLURRED_BUCKET_NAME')
-    #blur_bucket = storage_client.bucket(blur_bucket_name)
-
+    # Upload to images bucket to be picked up for the website
     new_blob_name = "images/"+file_base_name
     new_blob = current_blob.bucket.blob(new_blob_name)
     new_blob.upload_from_filename(temp_local_filename)
-    #print(f'Blurred image uploaded to: gs://{blur_bucket_name}/{file_name}')
     print(f'Blurred image uploaded to: gs://{current_blob.bucket}/{new_blob_name}')
 
     # Delete the temporary file.
@@ -167,8 +151,6 @@ def UpdatePicts(all_thumbs, current_bucket):
     tmpFile = "/tmp/"+pictsFile
     print(f"{tmpFile}")
     fp = open(tmpFile, "w")
-
-    #all_thumbs = list(current_bucket.list_blobs(prefix="images/thumb-"))
 
     fp.write("<template>\n")
 
