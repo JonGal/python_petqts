@@ -61,7 +61,7 @@ def blur_offensive_images(data, context):
     nsfw_annotations = (likelihood_name[detected.adult], likelihood_name[detected.violence])
 
     # Process image
-    # blur image if it is "LIKELY" or "VERY_LIKELY" to conain adult or violent content
+    # blur image if it is "LIKELY" or "VERY_LIKELY" to contain adult or violent content
     if any(x == 'LIKELY' or x == 'VERY_LIKELY' for x in nsfw_annotations):
         print(f'The image {file_name} was detected as inappropriate.')
         __blur_image(blob)
