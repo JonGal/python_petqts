@@ -65,15 +65,18 @@ def blur_offensive_images(data, context):
     if any(x == 'LIKELY' or x == 'VERY_LIKELY' for x in nsfw_annotations):
         print(f'The image {file_name} was detected as inappropriate.')
         __blur_image(blob)
+        #Blurred image will have been stored in images already
         file_base_name = "blurred-"+file_base_name
     else:
+        # Move the Okayed image to images
         storage_client.bucket(bucket_name).rename_blob(blob, "images/"+file_base_name)
         print(f'The image {file_name} was detected as OK.')
 
+    # Get the image itself to generate a thumbnail
     images_blob = storage_client.bucket(bucket_name).get_blob("images/"+file_base_name)
     GenThumbs(images_blob)
 
-    # Do this because list_blobs from bucket blob is deprecated
+    # Do this outside function because list_blobs from bucket blob is deprecated
     all_thumbs = list(storage_client.bucket(bucket_name).list_blobs(prefix="images/thumb-"))
     UpdatePicts(all_thumbs,storage_client.get_bucket(bucket_name) )   
 

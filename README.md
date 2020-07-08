@@ -1,6 +1,6 @@
 <img src="https://avatars2.githubusercontent.com/u/2810941?v=3&s=96" alt="Google Cloud Platform logo" title="Google Cloud Platform" align="right" height="96" width="96"/>
 
-# Google Cloud Functions ImageMagick sample
+# Cloned from Google Cloud Functions ImageMagick sample
 
 This sample shows you how to blur an image using ImageMagick in a
 Storage-triggered Cloud Function.
@@ -16,8 +16,8 @@ Functions for your project.
 
 1. Clone this repository:
 
-        git clone https://github.com/GoogleCloudPlatform/python-docs-samples.git
-        cd python-docs-samples/functions/imagemagick
+        git clone https://github.com/JonGal/python_petqts.git        
+	cd python_petqts/
 
 1. Create a Cloud Storage Bucket:
 
